@@ -1,0 +1,6 @@
+Title: Quick Explore
+Author: Tom Elliott
+Version: 0.1.0
+Imports:
+    iNZightPlots
+Description: Plots and summaries for quick exploration of a dataset.
