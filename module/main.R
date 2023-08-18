@@ -17,6 +17,7 @@ DemoModule <- setRefClass(
 
             initFields(
                 data = get_data(),
+                ctrl_group = NULL,
                 variables = names(get_data()),
                 handle_click = function() {},
                 updatePlot = function() {}
@@ -34,24 +35,27 @@ DemoModule <- setRefClass(
                 }
             )
             add_body(explore_type)
-
-            ctrl_group <<- gvbox()
-            add_body(ctrl_group)
-
             body_univariate()
 
             plot_handler <<- addHandlerClicked(
                 GUI$plotWidget$plotNb$children[[1]],
                 function(h, ...) {
+                    print("CLICKED")
                     handle_click()
                 }
             )
         },
         clear_body = function() {
-            sapply(
-                rev(ctrl_group$children),
-                function(x) ctrl_group$remove_child(x)
-            )
+            if (!is.null(ctrl_group)) {
+                .self$modwin$body$remove_child(ctrl_group)
+            }
+            ctrl_group <<- gvbox()
+            add_body(ctrl_group)
+
+            while ("Text Info" %in% names(GUI$plotWidget$plotNb)) {
+                ind <- which(names(GUI$plotWidget$plotNb) == "Text Info")
+                GUI$plotWidget$plotNb$remove_page_by_index(ind)
+            }
 
             updatePlot <<- function() {}
             handle_click <<- function() {}
@@ -230,11 +234,6 @@ DemoModule <- setRefClass(
                 }
             )
 
-
-            # tbl <- glayout(container = ctrl_group)
-            # tbl[1L, 1L] <- glabel("Variables: ")
-            # tbl[1L, 2L] <- vars
-
             updatePlot <<- function() {
                 print(svalue(vars))
                 if (length(svalue(vars)) <= 1L) {
@@ -264,15 +263,6 @@ DemoModule <- setRefClass(
                 print(p)
             }
 
-            # handle_click <<- function() {
-            #     page <<- page + 1L
-            #     if (page == v1$get_index()) page <<- page + 1L
-            #     n_plot <- 1L
-            #     n_page <- length(variables) - 1
-            #     if (page > n_page) page <<- 1L
-            #     updatePlot()
-            # }
-
             updatePlot()
         },
         body_missing_values = function() {
@@ -282,8 +272,34 @@ DemoModule <- setRefClass(
                 container = ctrl_group,
                 anchor = c(-1, 0)
             )
+
+            iNZightMR::plotcombn(data)
+
+            miss_text <- iNZightMR::calcmissing(data,
+                print = FALSE,
+                final = FALSE
+            )
+            print(miss_text)
+            miss_info <- gtext(
+                text = paste(miss_text, collapse = "\n"),
+                expand = TRUE,
+                wrap = FALSE,
+                font.attr = list(family = "monospace")
+            )
+            print(miss_info)
+            if (GUI$popOut) {
+                w <- gwindow(parent = GUI$win, size = c(600, 400))
+                add(w, miss_info)
+            } else {
+                add(GUI$plotWidget$plotNb,
+                    miss_info,
+                    label = "Text Info"
+                )
+                svalue(GUI$plotWidget$plotNb) <<- 1L
+            }
         },
         close = function() {
+            clear_body()
             removeHandler(GUI$plotWidget$plotNb$children[[1]], plot_handler)
             callSuper()
         }

@@ -2,7 +2,8 @@ Title: Quick Explore
 Author: Tom Elliott
 Version: 0.1.0
 Imports:
+    iNZightMR,
     iNZightPlots,
-    ggpairs,
+    GGally,
     ggplot2
 Description: Plots and summaries for quick exploration of a dataset.
