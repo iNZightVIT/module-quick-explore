@@ -2,7 +2,7 @@ Title: Quick Explore
 Author: Tom Elliott
 Version: 0.1.0
 Imports:
-    iNZightMR,
+    iNZightMR (>= 2.3.0),
     iNZightPlots,
     GGally,
     ggplot2
