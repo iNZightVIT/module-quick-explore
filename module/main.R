@@ -9,7 +9,8 @@ DemoModule <- setRefClass(
         handle_click = "function",
         updatePlot = "function",
         variables = "character",
-        page = "integer"
+        page = "integer",
+        click_in_progress = "logical"
     ),
     methods = list(
         initialize = function(gui, which = 1L, ...) {
@@ -20,7 +21,8 @@ DemoModule <- setRefClass(
                 ctrl_group = NULL,
                 variables = names(get_data()),
                 handle_click = function() {},
-                updatePlot = function() {}
+                updatePlot = function() {},
+                click_in_progress = FALSE
             )
 
             explore_type <<- gcombobox(
@@ -40,7 +42,15 @@ DemoModule <- setRefClass(
             plot_handler <<- addHandlerClicked(
                 GUI$plotWidget$plotNb$children[[1]],
                 function(h, ...) {
-                    print("CLICKED")
+                    if (click_in_progress) {
+                        return()
+                    }
+                    click_in_progress <<- TRUE
+                    dev.hold()
+                    on.exit({
+                        click_in_progress <<- FALSE
+                        dev.flush()
+                    })
                     handle_click()
                 }
             )
@@ -275,18 +285,18 @@ DemoModule <- setRefClass(
 
             iNZightMR::plotcombn(data)
 
-            miss_text <- iNZightMR::calcmissing(data,
-                print = FALSE,
-                final = FALSE
+            miss_text <- capture.output(
+                print(
+                    iNZightMR::calcmissing(data)
+                )
             )
-            print(miss_text)
             miss_info <- gtext(
                 text = paste(miss_text, collapse = "\n"),
                 expand = TRUE,
                 wrap = FALSE,
                 font.attr = list(family = "monospace")
             )
-            print(miss_info)
+
             if (GUI$popOut) {
                 w <- gwindow(parent = GUI$win, size = c(600, 400))
                 add(w, miss_info)
